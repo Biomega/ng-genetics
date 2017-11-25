@@ -1,3 +1,4 @@
+// inspired by this tutorial from Xavier Nayrac : https://lkdjiin.github.io/blog/2013/10/16/les-algorithmes-genetiques-demystifies-imagerie/
 import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
 import { Observable  } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Subscription';
@@ -40,7 +41,7 @@ export class ImgGeneticsComponent implements OnInit, AfterViewInit {
     this.generation = 0;
     this.schedulerPlay = true;
     this.img = new Image();
-    this.img.src = '../../assets/img/etagere-cube-mdf-carre-couleur-4-set-kare-design.jpg';
+    this.img.src = '../../assets/img/my-dev-is-not-crazy-i-had-it-tested.jpg';
     this.scheduler =  Observable.interval(1);
   }
 
@@ -68,6 +69,19 @@ export class ImgGeneticsComponent implements OnInit, AfterViewInit {
   }
   rangeMode() {
     this.rangeFlag = !this.rangeFlag;
+  }
+  play() {
+    this.schedulerPlay = true;
+    this.scheduler
+    .takeWhile(() => {
+      return this.schedulerPlay;
+    })
+    .subscribe(() => {
+        this.hillClimb();
+    });
+  }
+  pause() {
+    this.schedulerPlay = false;
   }
   private makeIndividual(): ISquare[] {
     const individual: ISquare[] = [];
@@ -114,26 +128,18 @@ export class ImgGeneticsComponent implements OnInit, AfterViewInit {
     return score / 100000;
   }
   private hillClimb() {
-    let opponent;
-    if (this.mutateFlag) {
-      opponent = this.mutateV2(_.clone(this.solution));
-    } else {
-      opponent = this.mutate(_.clone(this.solution));
-    }
+    const opponent = this.mutate(_.clone(this.solution));
     this.mutateFlag = !this.mutateFlag;
     const score_opponent = this.getQuality(opponent);
     const score_solution = this.quality;
     if (score_opponent > this.quality) {
-      this.solution = null;
       this.solution = _.clone(opponent);
       this.renderIndividual(this.solution, this.ctx);
       this.quality = score_opponent;
     }
     this.generation++;
-    if (this.generation >= 10000000) {
-      this.schedulerPlay = false;
-    }else if (this.generation % 100 === 0 && this.rangeFlag) {
-      this.range = Math.random() * 256;
+    if (this.generation % 100 === 0 && this.rangeFlag) {
+      this.range = Math.random() * this.range;
     }
   }
 
@@ -165,17 +171,6 @@ export class ImgGeneticsComponent implements OnInit, AfterViewInit {
     }
     return individual;
   }
-  private mutateV2(individual: ISquare[]) {
-    const gene = Math.floor(Math.random() * this.totalSquares);
-    individual[gene].x = Math.floor(Math.random() * this.imgWidth);
-    individual[gene].y = Math.floor(Math.random() * this.imgHeight);
-    individual[gene].size = Math.floor(Math.random() * this.squareMaxSize);
-    individual[gene].red = Math.floor(Math.random() * this.range);
-    individual[gene].green = Math.floor(Math.random() * this.range);
-    individual[gene].blue = Math.floor(Math.random() * this.range);
-    individual[gene].alpha = Math.random();
-    return individual;
-  }
 }
 export interface ISquare {
   x: number;
@@ -185,9 +180,4 @@ export interface ISquare {
   green: number;
   blue: number;
   alpha: number;
-}
-export enum QualityState {
-  negative = 'negative',
-  positive = 'positive',
-  null = 'null'
 }
