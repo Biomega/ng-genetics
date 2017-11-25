@@ -1,0 +1,9 @@
+<canvas #canvasOrigin width="400" height="400"></canvas>
+<canvas #canvasGenetic  width="400" height="400"></canvas>
+<p>{{generation}}</p>
+<p>score: {{quality}}</p>
+
+<input type="range" max="255" [(ngModel)]="range">
+<p [style.color]='green'>{{range}}</p>
+<br>
+<button type="button" (click)="rangeMode()">range random</button>
